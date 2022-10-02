@@ -4,10 +4,11 @@ from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
 class User(AbstractUser):
-    name = models.CharField(max_length=255)
-    email = models.CharField(max_length=255, unique=True)
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
+    email = models.EmailField(max_length=255)
     password = models.CharField(max_length=255)
-    username = None
+    username = models.EmailField(max_length=255, unique=True)
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+# class MetamaskUser(AbstractUser):
+#     wallet = models.CharField(max_length=255, unique=True)
