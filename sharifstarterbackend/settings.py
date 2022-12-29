@@ -51,6 +51,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'user',
+    'project',
+    'auction',
+    'wallet',
 ]
 
 MIDDLEWARE = [
