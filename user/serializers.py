@@ -25,11 +25,11 @@ class UserSerializer(serializers.ModelSerializer):
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField(
-        label="Username",
+        label="username",
         write_only=True
     )
     password = serializers.CharField(
-        label="Password",
+        label="password",
         style={'input_type': 'password'},
         trim_whitespace=False,
         write_only=True

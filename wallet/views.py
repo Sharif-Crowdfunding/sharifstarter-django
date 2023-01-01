@@ -6,7 +6,6 @@ from rest_framework.views import APIView
 from wallet.models import CryptoWallet, TokenAsset
 
 
-# Create your views here
 class WalletView(APIView):
     permission_classes = [IsAuthenticated]
 
