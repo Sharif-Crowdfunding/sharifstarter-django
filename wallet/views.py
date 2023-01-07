@@ -15,6 +15,6 @@ class WalletView(APIView):
         res = {
             'address': wallet.address,
             'balance': wallet.get_balance(),
-            'tokens': [{'contract_address': t.contract_address, 'balance': t.balance} for t in tokens]
+            'tokens': [{'symbol': t.symbol,'contract_address':t.contract_address, 'balance': t.balance} for t in tokens]
         }
         return Response(res)

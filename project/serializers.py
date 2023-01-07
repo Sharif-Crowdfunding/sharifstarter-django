@@ -15,5 +15,5 @@ class ProjectTokenInfoSerializer(serializers.ModelSerializer):
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ('name', 'image', 'basic_info','token_info')
+        fields = ('id','name', 'image', 'basic_info','token_info')
         depth = 1

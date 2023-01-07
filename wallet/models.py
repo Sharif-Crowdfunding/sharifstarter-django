@@ -29,4 +29,5 @@ def create_wallet(password):
 class TokenAsset(models.Model):
     wallet = models.ForeignKey(CryptoWallet, on_delete=models.CASCADE)
     contract_address = models.CharField(max_length=500)
+    symbol = models.CharField(max_length=8)
     balance = models.BigIntegerField()

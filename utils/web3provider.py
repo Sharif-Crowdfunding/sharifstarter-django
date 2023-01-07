@@ -14,7 +14,7 @@ def get_provider():
 
 class Web3Provider:
     web3 = Web3(Web3.HTTPProvider(ganache_url))
-    sharifstarter_contract_address = '0xA6bE33bfB6F07a7d2939e67F366418c1AB283aA0'
+    sharifstarter_contract_address = '0x504695d677eaf67168Dc467743afbC3D541b1f55'
     manager = '0x4d56C6784587455b845718c392A66F104A2bA3bD'
     manager_pass = '6cc8f3ca777f4838c9e13811bbba48b7de749e88e4540cecc4b04b965d098a88'
     @staticmethod

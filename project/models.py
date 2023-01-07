@@ -41,12 +41,12 @@ class Project(models.Model):
 
     def cancel(self):
         self.token_info.development_stage=DevelopmentStages.Canceled.value
-        self.save()
+        self.token_info.save()
     def fund(self):
         self.token_info.development_stage=DevelopmentStages.Elaboration.value
-        self.save()
+        self.token_info.save()
 
     def release(self):
         self.token_info.development_stage=DevelopmentStages.Deployment.value
-        self.save()
+        self.token_info.save()
 

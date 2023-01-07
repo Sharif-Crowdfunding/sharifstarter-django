@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 
 from project.serializers import *
 from utils.web3provider import get_provider
+from wallet.tokens import mint_token
 
 
 # Create your views here.
@@ -28,7 +29,7 @@ class CreateProjectView(APIView):
         p = Project(user=request.user, name=serializer.validated_data['name'], image=serializer.validated_data['image'],
                     basic_info=basic_info, token_info=token_info)
         p.save()
-
+        mint_token(p)
         # call async function
         # get_provider().deploy_project_contract(p.user.wallet.address,p.user.wallet.encrypted_private_key,p.user.password, p.name, p.token_info.symbol,
         #                                        p.token_info.total_supply)
@@ -42,6 +43,17 @@ class GetProjectInfo(APIView):
         id = int(request.data['id'])
         p = Project.objects.get(id=id)
         return Response(ProjectSerializer(p).data)
+
+
+class MyProjects(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        projects = Project.objects.filter(user=request.user)
+        projects_res = []
+        for p in projects:
+            projects_res.append(ProjectSerializer(p).data)
+        return Response(projects_res)
 
 
 class CancelProject(APIView):
@@ -90,3 +102,12 @@ class ReleaseProject(APIView):
             project.release()
             return Response(status=HTTP_200_OK)
         return Response(status=HTTP_400_BAD_REQUEST)
+
+
+class GetSymbol(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, id):
+        project = '0x02EE3ED360139B2245ac9Df3E764fe90176d392a'
+        return Response(get_provider().get_project(project).functions.symbol().call())
+        # return Response(status=HTTP_400_BAD_REQUEST)
