@@ -38,7 +38,31 @@ def get_balance(address):
     balance = web3.eth.getBalance(address)
     return web3.fromWei(balance, 'ether')
 
+def transfer(self, sender, private_key, to, amount):
+    nonce = self.web3.eth.getTransactionCount(sender)
+    gas_estimate = self.contract_instance.functions.transfer(to, amount).estimateGas({'from': sender})
+    print(f'Gas estimate to transact: {gas_estimate}')
 
+    if gas_estimate < 100000:
+        print("Sending transaction of transfer\n")
+        tx_hash = self.contract_instance.functions.transfer(to, amount).buildTransaction({
+            'gas': gas_estimate,
+            'gasPrice': self.web3.eth.gasPrice,
+            'from': sender,
+            'nonce': nonce,
+        })
+
+        signed_txn = self.web3.eth.account.signTransaction(tx_hash, private_key=private_key)
+        print("signed tx")
+        sent_tx = self.web3.eth.sendRawTransaction(signed_txn.rawTransaction)
+        print("tx sent")
+        print("Transaction receipt mined:")
+        print(sent_tx)
+        print("\nWas transaction successful?")
+        result = self.web3.eth.wait_for_transaction_receipt(sent_tx)
+        print(result)
+    else:
+        print("Gas cost exceeds 100000")
 def deploy_project_contract(creator, encrypted_private_key, password, name, symbol, desc, total):
     contract = get_sharif_starter()
     print(contract.functions.symbol().call())
