@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from web3 import Web3
 
 ganache_url = 'http://127.0.0.1:8545'
@@ -32,6 +34,9 @@ class ETHProvider:
 
     def get_project(self, contract_address):
         return ProjectProvider(self.web3, contract_address, self.project_abi)
+
+    def get_auction(self,contract_address):
+        return AuctionProvider(self.web3,contract_address,self.auction_abi)
 
 
 class SharifStarterProvider:
@@ -119,13 +124,13 @@ class ProjectProvider:
         details = self.contract_instance.functions.projectDetails().call()
         return details
 
-    def fund(self,creator,pk):
-        nonce = self.web3.eth.getTransactionCount(creator)
-        gas_estimate = self.contract_instance.functions.fundProject().estimateGas({'from': creator})
+    def fund(self, project_creator, pk):
+        nonce = self.web3.eth.getTransactionCount(project_creator)
+        gas_estimate = self.contract_instance.functions.fundProject().estimateGas({'from': project_creator})
         tx_hash = self.contract_instance.functions.fundProject().buildTransaction({
             'gas': gas_estimate,
             'gasPrice': self.web3.eth.gasPrice,
-            'from': creator,
+            'from': project_creator,
             'nonce': nonce,
         })
 
@@ -133,13 +138,27 @@ class ProjectProvider:
         sent_tx = self.web3.eth.sendRawTransaction(signed_txn.rawTransaction)
         result = self.web3.eth.wait_for_transaction_receipt(sent_tx)
         return result
-    def release(self,creator,pk):
-        nonce = self.web3.eth.getTransactionCount(creator)
-        gas_estimate = self.contract_instance.functions.releaseProject().estimateGas({'from': creator})
+    def cancel(self, project_creator, pk):
+        nonce = self.web3.eth.getTransactionCount(project_creator)
+        gas_estimate = self.contract_instance.functions.cancelProject().estimateGas({'from': project_creator})
+        tx_hash = self.contract_instance.functions.cancelProject().buildTransaction({
+            'gas': gas_estimate,
+            'gasPrice': self.web3.eth.gasPrice,
+            'from': project_creator,
+            'nonce': nonce,
+        })
+
+        signed_txn = self.web3.eth.account.signTransaction(tx_hash, private_key=pk)
+        sent_tx = self.web3.eth.sendRawTransaction(signed_txn.rawTransaction)
+        result = self.web3.eth.wait_for_transaction_receipt(sent_tx)
+        return result
+    def release(self, project_creator, pk):
+        nonce = self.web3.eth.getTransactionCount(project_creator)
+        gas_estimate = self.contract_instance.functions.releaseProject().estimateGas({'from': project_creator})
         tx_hash = self.contract_instance.functions.releaseProject().buildTransaction({
             'gas': gas_estimate,
             'gasPrice': self.web3.eth.gasPrice,
-            'from': creator,
+            'from': project_creator,
             'nonce': nonce,
         })
 
@@ -163,8 +182,24 @@ class ProjectProvider:
         result = self.web3.eth.wait_for_transaction_receipt(sent_tx)
         return result
 
-    def create_auction(self,):
-        pass
+    def create_auction(self, a_creator, a_creator_pk, sale_token_num, min_val_per_token, bidding_time, delayed_start_time=0):
+        nonce = self.web3.eth.getTransactionCount(a_creator)
+        gas_estimate = self.contract_instance.functions.createAuction(sale_token_num, min_val_per_token, bidding_time,
+                                                                      delayed_start_time).estimateGas(
+            {'from': a_creator})
+        tx_hash = self.contract_instance.functions.createAuction(sale_token_num, min_val_per_token, bidding_time,
+                                                                      delayed_start_time).buildTransaction({
+            'gas': gas_estimate,
+            'gasPrice': self.web3.eth.gasPrice,
+            'from': a_creator,
+            'nonce': nonce,
+        })
+
+        signed_txn = self.web3.eth.account.signTransaction(tx_hash, private_key=a_creator_pk)
+        sent_tx = self.web3.eth.sendRawTransaction(signed_txn.rawTransaction)
+        result = self.web3.eth.wait_for_transaction_receipt(sent_tx)
+        return result
+
 
     def set_shareholders(self, sender, private_key, shareholders, amount):
         # TODO
@@ -190,23 +225,86 @@ class ProjectProvider:
             return None
 
 
+class AuctionProvider:
+    def __init__(self, web3, contract_address, abi):
+        self.web3 = web3
+        address = web3.toChecksumAddress(contract_address)
+        self.contract_instance = web3.eth.contract(address=address, abi=abi)
+
+    def cancel(self, auction_creator, pk):
+        nonce = self.web3.eth.getTransactionCount(auction_creator)
+        gas_estimate = self.contract_instance.functions.cancel().estimateGas({'from': auction_creator})
+        tx_hash = self.contract_instance.functions.cancel().buildTransaction({
+            'gas': gas_estimate,
+            'gasPrice': self.web3.eth.gasPrice,
+            'from': auction_creator,
+            'nonce': nonce,
+        })
+
+        signed_txn = self.web3.eth.account.signTransaction(tx_hash, private_key=pk)
+        sent_tx = self.web3.eth.sendRawTransaction(signed_txn.rawTransaction)
+        result = self.web3.eth.wait_for_transaction_receipt(sent_tx)
+        return result
+
+    def bid(self,bidder,pk,req_token_num,total_val):
+        nonce = self.web3.eth.getTransactionCount(bidder)
+        gas_estimate = self.contract_instance.functions.bid(req_token_num).estimateGas({'from': bidder,'value':total_val})
+        tx_hash = self.contract_instance.functions.bid(req_token_num).buildTransaction({
+            'gas': gas_estimate,
+            'gasPrice': self.web3.eth.gasPrice,
+            'from': bidder,
+            'value':total_val,
+            'nonce': nonce,
+        })
+
+        signed_txn = self.web3.eth.account.signTransaction(tx_hash, private_key=pk)
+        sent_tx = self.web3.eth.sendRawTransaction(signed_txn.rawTransaction)
+        result = self.web3.eth.wait_for_transaction_receipt(sent_tx)
+        return result
+
 if __name__ == '__main__':
-    eth_p = ETHProvider('0x44e5f3d39aDBdb0950d88F24128016947Ef634D4', '0x1917c9DAb2A42077701c72B9A2C855f4Fe10E041',
-                        '')
-    print(eth_p.get_sharif_starter().get_total_supply())
-    print(eth_p.get_sharif_starter().balance_of('0x1917c9DAb2A42077701c72B9A2C855f4Fe10E041'))
+    ss_adrs = '0x93798bD0950b697fE0E252eEaB07635c87371dCd'
+    creator = '0x9d112fE3fA0740f789e6a49bf9Eb0e3563908438'
+    manager = '0x881bEC6e019C959A4207501a1131f27bA25fc232'
+    manager_pk = '0x7e8cd4add61c6e9b907492b1d02149a74b9dca7693a9711f84ce28a7b87f79b5'
+    eth_p = ETHProvider(ss_adrs, manager, manager_pk)
+    # print(eth_p.get_sharif_starter().get_total_supply())
+    # print(eth_p.get_sharif_starter().balance_of(creator))
 
     # print("transfer func test:")
     # print(eth_p.get_sharif_starter().transfer('0x1917c9DAb2A42077701c72B9A2C855f4Fe10E041',
     #                                           '0x403c224223505bb9ee1e7817f905e78f1e7c15b2fd6c6af0b95bfc8e8493ca8a',
     #                                           '0xBD4a090365b7968053d3bCed09Cb5415941b95b1', 10 ** 19))
 
-    # print("create project")
-    # print(eth_p.get_sharif_starter().create_project('0x1917c9DAb2A42077701c72B9A2C855f4Fe10E041',
-    #                                            '0x403c224223505bb9ee1e7817f905e78f1e7c15b2fd6c6af0b95bfc8e8493ca8a',eth_p.manager,
-    #                                                 'tousradieh','Tous','',10000))
+    p_creator = '0xd5861813d45aa520d5d560da02cd966582870234'
+    p_creator_pk = '0xad35d3084a4871f03a638e192fea6849098bbfbebf1f57b49fc31b5ef5b195c9'
 
-    project_address = '0x216Ebb9F3bB39B7437122FE77BcFe974836872E0'
-    creator = '0x1917c9DAb2A42077701c72B9A2C855f4Fe10E041'
-    creator_pass = '0x403c224223505bb9ee1e7817f905e78f1e7c15b2fd6c6af0b95bfc8e8493ca8a'
-    print(eth_p.get_project(project_address).get_details())
+    # print("create project")
+    # result =(eth_p.get_sharif_starter().create_project(p_creator,p_creator_pk
+    #                                            ,eth_p.manager,
+    #                                                 'jolback','JOLB','description',10000))
+    #
+    # project_address = result['logs'][0]['address']
+    # print("project adrs: ",project_address)
+
+    # project_address = '0xD332a42E13580EaD8b88f96176CDB6c24379EbB0'
+    # p = eth_p.get_project(project_address)
+    # print(p.get_details())
+    # #
+    # print(p.fund(p_creator, p_creator_pk))
+    # print(p.approve_by_manager(manager,manager_pk))
+    # print(p.release(p_creator, p_creator_pk))
+    #
+    # Create Auction
+    # print("create auction")
+    # bidding_time = int(60*5)
+    # sale_token_num=100
+    # min_val_per_token=10**17
+    # result=p.create_auction(p_creator,p_creator_pk,sale_token_num,min_val_per_token,bidding_time)
+    # print(result)
+
+    auction_address ='0x7642521c320331561d65a20Da9B38BDc6ceaC517'
+    a=eth_p.get_auction(auction_address).bid(p_creator,p_creator_pk,10,10000000000000000000)
+    print(a)
+
+# git hub token : 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
