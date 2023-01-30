@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.status import *
@@ -28,11 +27,15 @@ class CreateProjectView(APIView):
 
         p = Project(user=request.user, name=serializer.validated_data['name'], image=serializer.validated_data['image'],
                     basic_info=basic_info, token_info=token_info)
-        p.save()
+
+        eth_p = get_eth_provider()
+        pk = eth_p.calc_private_key(p.user.wallet.encrypted_private_key, p.user.username)
+        result = eth_p.get_sharif_starter().create_project(p.user.wallet.address, pk, eth_p.manager, p.name,
+                                                           str.upper(p.token_info.symbol), "",p.token_info.total_supply)
+        p.contract_address = result['logs'][0]['address']
+
         mint_token(p)
-        # call async function
-        # get_provider().deploy_project_contract(p.user.wallet.address,p.user.wallet.encrypted_private_key,p.user.password, p.name, p.token_info.symbol,
-        #                                        p.token_info.total_supply)
+        p.save()
         return Response(ProjectSerializer(p).data)
 
 

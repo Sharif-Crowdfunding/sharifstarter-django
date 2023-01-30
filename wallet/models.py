@@ -2,6 +2,7 @@ import json
 
 from django.db import models
 
+from utils.ethereum.blockchain import get_eth_provider
 from utils.web3provider import Web3Provider
 
 
@@ -9,13 +10,16 @@ from utils.web3provider import Web3Provider
 class CryptoWallet(models.Model):
     address = models.CharField(max_length=100)
     encrypted_private_key = models.CharField(max_length=600)
-    eth_balance = models.BigIntegerField()
+    eth_balance = models.FloatField()
 
     def get_balance(self):
-        current_balance = Web3Provider.web3.eth.getBalance(self.address)
+        current_balance = get_eth_provider().get_balance(self.address)
         self.eth_balance = current_balance
         self.save()
         return current_balance
+
+    def credit(self):
+        get_eth_provider()
 
 
 def create_wallet(password):

@@ -3,6 +3,7 @@ from enum import Enum
 from django.db import models
 
 from user.models import User
+from utils.ethereum.blockchain import get_eth_provider
 
 
 class DevelopmentStages(Enum):
@@ -41,6 +42,10 @@ class Project(models.Model):
 
     def cancel(self):
         self.token_info.development_stage=DevelopmentStages.Canceled.value
+        eth_p=get_eth_provider()
+        p=eth_p.get_project(contract_address=self.contract_address)
+        pk = eth_p.calc_private_key(self.user.wallet.encrypted_private_key,self.user.password)
+        result = p.cancel(self.user.wallet.address,pk)
         self.token_info.save()
     def fund(self):
         self.token_info.development_stage=DevelopmentStages.Elaboration.value
@@ -48,5 +53,6 @@ class Project(models.Model):
 
     def release(self):
         self.token_info.development_stage=DevelopmentStages.Deployment.value
+
         self.token_info.save()
 
