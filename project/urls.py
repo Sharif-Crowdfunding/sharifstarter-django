@@ -10,4 +10,5 @@ urlpatterns = [
     path('fund/<id>/', FundProject.as_view()),
     path('release/<id>/', ReleaseProject.as_view()),
     path('symbol/<id>/', GetSymbol.as_view()),
+    path('shareholders/<id>/', GetProjectShareHolders.as_view()),
 ]

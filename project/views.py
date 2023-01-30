@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 
 from project.serializers import *
 from utils.web3provider import get_provider
+from wallet.models import TokenAsset
 from wallet.tokens import mint_token
 
 
@@ -31,7 +32,8 @@ class CreateProjectView(APIView):
         eth_p = get_eth_provider()
         pk = eth_p.calc_private_key(p.user.wallet.encrypted_private_key, p.user.username)
         result = eth_p.get_sharif_starter().create_project(p.user.wallet.address, pk, eth_p.manager, p.name,
-                                                           str.upper(p.token_info.symbol), "",p.token_info.total_supply)
+                                                           str.upper(p.token_info.symbol), "",
+                                                           p.token_info.total_supply)
         p.contract_address = result['logs'][0]['address']
 
         mint_token(p)
@@ -106,6 +108,15 @@ class ReleaseProject(APIView):
             return Response(status=HTTP_200_OK)
         return Response(status=HTTP_400_BAD_REQUEST)
 
+
+class GetProjectShareHolders(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, id):
+        project = Project.objects.get(id=id)
+        shareholders = TokenAsset.objects.filter(symbol=project.token_info.symbol)
+        s_list = [{'wallet_address': s.wallet.address, 'balance': s.balance} for s in shareholders]
+        return Response(data=s_list, status=HTTP_200_OK)
 
 class GetSymbol(APIView):
     permission_classes = [AllowAny]

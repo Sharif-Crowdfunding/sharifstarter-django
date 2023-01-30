@@ -13,9 +13,12 @@ class ETHProvider:
         self.manager = manager
         self.manager_pass = manager_pass
         try:
-            self.ss_abi = open('/home/erfanfi79/PycharmProjects/sharifstarterbackend/utils/contract/SharifStarter.abi').read()
-            self.project_abi = open('/home/erfanfi79/PycharmProjects/sharifstarterbackend/utils/contract/Project.abi').read()
-            self.auction_abi = open('/home/erfanfi79/PycharmProjects/sharifstarterbackend/utils/contract/Auction.abi').read()
+            self.ss_abi = open(
+                '/home/erfanfi79/PycharmProjects/sharifstarterbackend/utils/contract/SharifStarter.abi').read()
+            self.project_abi = open(
+                '/home/erfanfi79/PycharmProjects/sharifstarterbackend/utils/contract/Project.abi').read()
+            self.auction_abi = open(
+                '/home/erfanfi79/PycharmProjects/sharifstarterbackend/utils/contract/Auction.abi').read()
         except:
             print("ETHProvider failed to load sharif starter abi.")
 
@@ -269,6 +272,21 @@ class AuctionProvider:
         result = self.web3.eth.wait_for_transaction_receipt(sent_tx)
         return result
 
+    def update_state(self, public_key, pk):
+        nonce = self.web3.eth.getTransactionCount(public_key)
+        gas_estimate = self.contract_instance.functions.updateState().estimateGas({'from': public_key})
+        tx_hash = self.contract_instance.functions.updateState().buildTransaction({
+            'gas': gas_estimate,
+            'gasPrice': self.web3.eth.gasPrice,
+            'from': public_key,
+            'nonce': nonce,
+        })
+
+        signed_txn = self.web3.eth.account.signTransaction(tx_hash, private_key=pk)
+        sent_tx = self.web3.eth.sendRawTransaction(signed_txn.rawTransaction)
+        result = self.web3.eth.wait_for_transaction_receipt(sent_tx)
+        return result
+
     def bid(self, bidder, pk, req_token_num, total_val):
         nonce = self.web3.eth.getTransactionCount(bidder)
         gas_estimate = self.contract_instance.functions.bid(req_token_num).estimateGas(
@@ -288,9 +306,9 @@ class AuctionProvider:
 
 
 def get_eth_provider():
-    ss_adrs = '0x773f3a9404DB257F63ceA3d7B9812F85A7F58c92'
-    manager = '0x72cE2a2D6A1aCbaf89F93bbc636AeB7a7fbD7e4B'
-    manager_pk = '0x913d2b924c03763e39174939f0b8483de3e9a6fb8b937a9005595693ca568ecb'
+    ss_adrs = '0x88b81Dda4816B964f30B0E7239bbb232BD0D5732'
+    manager = '0x9F63A6698c01C46792758348b215bEAdCF7b9A5e'
+    manager_pk = '0xc971026d1fbb30285d49f895398ee9fdae6b6c6fa1cab68855567efdc08b51ea'
     return ETHProvider(ss_adrs, manager, manager_pk)
 
 
@@ -336,4 +354,4 @@ if __name__ == '__main__':
     a = eth_p.get_auction(auction_address).bid(p_creator, p_creator_pk, 10, 10000000000000000000)
     print(a)
 
-# git hub token : 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
+# git hub token : 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

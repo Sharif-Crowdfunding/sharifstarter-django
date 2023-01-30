@@ -41,18 +41,30 @@ class Project(models.Model):
         return len(self.contract_address) > 0
 
     def cancel(self):
-        self.token_info.development_stage=DevelopmentStages.Canceled.value
-        eth_p=get_eth_provider()
-        p=eth_p.get_project(contract_address=self.contract_address)
-        pk = eth_p.calc_private_key(self.user.wallet.encrypted_private_key,self.user.password)
-        result = p.cancel(self.user.wallet.address,pk)
+        self.token_info.development_stage = DevelopmentStages.Canceled.value
+        eth_p = get_eth_provider()
+        p = eth_p.get_project(contract_address=self.contract_address)
+        pk = eth_p.calc_private_key(self.user.wallet.encrypted_private_key, self.user.username)
+        result = p.cancel(self.user.wallet.address, pk)
+        print(result)
         self.token_info.save()
+
     def fund(self):
-        self.token_info.development_stage=DevelopmentStages.Elaboration.value
+        self.token_info.development_stage = DevelopmentStages.Elaboration.value
+        eth_p = get_eth_provider()
+        p = eth_p.get_project(contract_address=self.contract_address)
+        pk = eth_p.calc_private_key(self.user.wallet.encrypted_private_key, self.user.username)
+        result = p.fund(self.user.wallet.address, pk)
+        print(result)
+        approve_result = p.approve_by_manager(eth_p.manager,eth_p.manager_pass)
+        print(approve_result)
         self.token_info.save()
 
     def release(self):
-        self.token_info.development_stage=DevelopmentStages.Deployment.value
-
+        self.token_info.development_stage = DevelopmentStages.Deployment.value
+        eth_p = get_eth_provider()
+        p = eth_p.get_project(contract_address=self.contract_address)
+        pk = eth_p.calc_private_key(self.user.wallet.encrypted_private_key, self.user.username)
+        result = p.release(self.user.wallet.address, pk)
+        print(result)
         self.token_info.save()
-
