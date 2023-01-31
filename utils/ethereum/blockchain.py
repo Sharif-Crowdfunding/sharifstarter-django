@@ -227,28 +227,20 @@ class ProjectProvider:
         result = self.web3.eth.wait_for_transaction_receipt(sent_tx)
         return result
 
-    def set_shareholders(self, sender, private_key, shareholders, amount):
-        # TODO
-        results = []
-        for to in shareholders:
-            nonce = self.web3.eth.getTransactionCount(sender)
-            gas_estimate = self.contract_instance.functions.transfer(to, amount).estimateGas({'from': sender})
+    def transfer(self, sender, private_key, to, amount):
+        nonce = self.web3.eth.getTransactionCount(sender)
+        gas_estimate = self.contract_instance.functions.transfer(to, amount).estimateGas({'from': sender})
+        tx_hash = self.contract_instance.functions.transfer(to, amount).buildTransaction({
+            'gas': gas_estimate,
+            'gasPrice': self.web3.eth.gasPrice,
+            'from': sender,
+            'nonce': nonce,
+        })
 
-            if gas_estimate < 100000:
-                tx_hash = self.contract_instance.functions.transfer(to, amount).buildTransaction({
-                    'gas': gas_estimate,
-                    'gasPrice': self.web3.eth.gasPrice,
-                    'from': sender,
-                    'nonce': nonce,
-                })
-
-                signed_txn = self.web3.eth.account.signTransaction(tx_hash, private_key=private_key)
-                sent_tx = self.web3.eth.sendRawTransaction(signed_txn.rawTransaction)
-            result = self.web3.eth.wait_for_transaction_receipt(sent_tx)
-            return result
-        else:
-            print("Gas cost exceeds 100000")
-            return None
+        signed_txn = self.web3.eth.account.signTransaction(tx_hash, private_key=private_key)
+        sent_tx = self.web3.eth.sendRawTransaction(signed_txn.rawTransaction)
+        result = self.web3.eth.wait_for_transaction_receipt(sent_tx)
+        return result
 
 
 class AuctionProvider:
