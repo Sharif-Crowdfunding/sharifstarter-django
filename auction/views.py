@@ -103,3 +103,19 @@ class BidOnAuction(APIView):
         print(result)
         b.save()
         return Response(BidSerializer(b).data, status=HTTP_200_OK)
+
+class GetAllBids(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, id):
+        Bids = Bid.objects.all(auction_id=request.id)
+        res = []
+        for bid in Bids:
+            temp = {
+                "bidder_id": bid.bidder,
+                "auction_id": bid.auction,
+                "total_val": bid.total_val,
+                "token_num": bid.token_num
+            }
+            res.append(temp)
+        return Response(res)

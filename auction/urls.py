@@ -7,5 +7,6 @@ urlpatterns = [
     path('market/', GetAuctionList.as_view()),
     path('bid/', BidOnAuction.as_view()),
     path('details/<id>/', GetAuctionDetails.as_view()),
+    path('bid/all/<auction_id>', GetAllBids.as_view()),
 
 ]
