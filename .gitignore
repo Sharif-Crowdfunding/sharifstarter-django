@@ -9,7 +9,6 @@
 /venv/
 /env/
 __pycache__/
-*.abi
 */migrations/
 launch.json
 *.mo
