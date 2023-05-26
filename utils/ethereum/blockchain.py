@@ -14,11 +14,11 @@ class ETHProvider:
         self.manager_pass = manager_pass
         try:
             self.ss_abi = open(
-                '/home/erfanfi79/PycharmProjects/sharifstarterbackend/utils/contract/SharifStarter.abi').read()
+                'SharifStarter.abi').read()
             self.project_abi = open(
-                '/home/erfanfi79/PycharmProjects/sharifstarterbackend/utils/contract/Project.abi').read()
+                'Project.abi').read()
             self.auction_abi = open(
-                '/home/erfanfi79/PycharmProjects/sharifstarterbackend/utils/contract/Auction.abi').read()
+                'Auction.abi').read()
         except:
             print("ETHProvider failed to load sharif starter abi.")
 
