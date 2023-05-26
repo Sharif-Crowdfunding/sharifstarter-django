@@ -354,9 +354,9 @@ class AuctionProvider:
 
 
 def get_eth_provider():
-    ss_adrs = '0x17dD7aBF44986A629e703b428779Fd1FFC607554'
-    manager = '0x08eAf9EBd4f1993efc2121E03690Ad41D46681d6'
-    manager_pk = '0xfc7547c2fb646be8da71fbd04f6dd4ea4bcc2c39e7872ee8c9c7551711a22af6'
+    ss_adrs = '0x3f54fBd35eAF4E584e75E8Eb642dA84a37205Db6'
+    manager = '0xF86Afd6A2265a84FA2DcBDD4ad5a7f3B24DAe28A'
+    manager_pk = '0x9e4baae161ee982622c8a855f5b0b3b964c0e01a3de9add6b06d6a3167a8582b'
     return ETHProvider(ss_adrs, manager, manager_pk)
 
 
