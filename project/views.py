@@ -43,7 +43,8 @@ class CreateProjectView(APIView):
         mint_token(p)
         p.save()
 
-        set_shareholders(p, shareholders)
+        #TODO
+        # set_shareholders(p, shareholders)
 
         return Response(ProjectSerializer(p).data)
 

@@ -41,6 +41,26 @@ class Auction(models.Model):
     def get_bidding_time(self):
         return self.end_time - self.start_time
 
+    def calc_result(self):
+        self.state=AuctionState.Finished.value
+        self.save()
+
+        bids = Bid.objects.filter(auction=self)
+        print(bids)
+        eth_p = get_eth_provider()
+        winners = eth_p.get_auction(self.contract_address).get_winners()
+        print("winners ----------->",winners)
+
+    def cancel(self):
+        self.state=AuctionState.Canceled.value
+        self.save()
+        print(self.state)
+        bids = Bid.objects.filter(auction=self)
+        for b in bids:
+            b.bidder.wallet.update_wallet()
+        self.creator.wallet.update_wallet()
+        print(bids)
+
 
 class LikedAuction(models.Model):
     auction = models.ForeignKey(Auction, on_delete=models.CASCADE)
@@ -52,6 +72,7 @@ class Bid(models.Model):
     auction = models.ForeignKey(Auction, on_delete=models.CASCADE)
     token_num = models.IntegerField(default=0)
     total_val = models.BigIntegerField(default=0)
+    is_done = models.BooleanField(default=False)
 
 
 class Winner(models.Model):

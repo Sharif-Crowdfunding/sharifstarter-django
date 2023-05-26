@@ -61,7 +61,20 @@ class ETHProvider:
         sent_tx = self.web3.eth.sendRawTransaction(signed_txn.rawTransaction)
         result = self.web3.eth.wait_for_transaction_receipt(sent_tx)
         return result
+    def get_shs_token(self, to, amount):
+        nonce = self.web3.eth.getTransactionCount(self.manager)
+        gas_estimate = self.get_sharif_starter().contract_instance.functions.transfer(to, amount).estimateGas({'from': self.manager})
+        tx_hash = self.get_sharif_starter().contract_instance.functions.transfer(to, amount).buildTransaction({
+            'gas': gas_estimate,
+            'gasPrice': self.web3.eth.gasPrice,
+            'from': self.manager,
+            'nonce': nonce,
+        })
 
+        signed_txn = self.web3.eth.account.signTransaction(tx_hash, private_key=self.manager_pass)
+        sent_tx = self.web3.eth.sendRawTransaction(signed_txn.rawTransaction)
+        result = self.web3.eth.wait_for_transaction_receipt(sent_tx)
+        return result
 
 class SharifStarterProvider:
     def __init__(self, web3, contract_address, abi):
@@ -140,6 +153,10 @@ class ProjectProvider:
         stage = self.contract_instance.functions.stage().call()
         return stage
 
+    def get_balance(self, wallet):
+        balance = self.contract_instance.functions.balanceOf(wallet).call()
+        return balance
+
     def is_approved_for_cf(self):
         is_approved = self.contract_instance.functions.isApprovedForCrowdFund().call()
         return is_approved
@@ -147,6 +164,10 @@ class ProjectProvider:
     def get_details(self):
         details = self.contract_instance.functions.projectDetails().call()
         return details
+
+    def get_auctions(self):
+        auctions = self.contract_instance.functions.getAuctions().call()
+        return auctions
 
     def fund(self, project_creator, pk):
         nonce = self.web3.eth.getTransactionCount(project_creator)
@@ -227,6 +248,38 @@ class ProjectProvider:
         result = self.web3.eth.wait_for_transaction_receipt(sent_tx)
         return result
 
+    def cancel_auction(self, a_creator, a_creator_pk, a_address):
+        nonce = self.web3.eth.getTransactionCount(a_creator)
+        gas_estimate = self.contract_instance.functions.cancelAuction(a_address).estimateGas(
+            {'from': a_creator})
+        tx_hash = self.contract_instance.functions.cancelAuction(a_address).buildTransaction({
+            'gas': gas_estimate,
+            'gasPrice': self.web3.eth.gasPrice,
+            'from': a_creator,
+            'nonce': nonce,
+        })
+
+        signed_txn = self.web3.eth.account.signTransaction(tx_hash, private_key=a_creator_pk)
+        sent_tx = self.web3.eth.sendRawTransaction(signed_txn.rawTransaction)
+        result = self.web3.eth.wait_for_transaction_receipt(sent_tx)
+        return result
+
+    def calc_auction(self, a_creator, a_creator_pk, a_address):
+        nonce = self.web3.eth.getTransactionCount(a_creator)
+        gas_estimate = self.contract_instance.functions.calcAuctionResult(a_address).estimateGas(
+            {'from': a_creator})
+        tx_hash = self.contract_instance.functions.calcAuctionResult(a_address).buildTransaction({
+            'gas': gas_estimate,
+            'gasPrice': self.web3.eth.gasPrice,
+            'from': a_creator,
+            'nonce': nonce,
+        })
+
+        signed_txn = self.web3.eth.account.signTransaction(tx_hash, private_key=a_creator_pk)
+        sent_tx = self.web3.eth.sendRawTransaction(signed_txn.rawTransaction)
+        result = self.web3.eth.wait_for_transaction_receipt(sent_tx)
+        return result
+
     def transfer(self, sender, private_key, to, amount):
         nonce = self.web3.eth.getTransactionCount(sender)
         gas_estimate = self.contract_instance.functions.transfer(to, amount).estimateGas({'from': sender})
@@ -264,6 +317,9 @@ class AuctionProvider:
         result = self.web3.eth.wait_for_transaction_receipt(sent_tx)
         return result
 
+    def get_winners(self):
+        winners = self.contract_instance.functions.getWinners().call()
+        return winners
     def update_state(self, public_key, pk):
         nonce = self.web3.eth.getTransactionCount(public_key)
         gas_estimate = self.contract_instance.functions.updateState().estimateGas({'from': public_key})
@@ -298,9 +354,9 @@ class AuctionProvider:
 
 
 def get_eth_provider():
-    ss_adrs = '0x88b81Dda4816B964f30B0E7239bbb232BD0D5732'
-    manager = '0x9F63A6698c01C46792758348b215bEAdCF7b9A5e'
-    manager_pk = '0xc971026d1fbb30285d49f895398ee9fdae6b6c6fa1cab68855567efdc08b51ea'
+    ss_adrs = '0x17dD7aBF44986A629e703b428779Fd1FFC607554'
+    manager = '0x08eAf9EBd4f1993efc2121E03690Ad41D46681d6'
+    manager_pk = '0xfc7547c2fb646be8da71fbd04f6dd4ea4bcc2c39e7872ee8c9c7551711a22af6'
     return ETHProvider(ss_adrs, manager, manager_pk)
 
 
@@ -342,8 +398,11 @@ if __name__ == '__main__':
     # result=p.create_auction(p_creator,p_creator_pk,sale_token_num,min_val_per_token,bidding_time)
     # print(result)
 
-    auction_address = '0x7642521c320331561d65a20Da9B38BDc6ceaC517'
-    a = eth_p.get_auction(auction_address).bid(p_creator, p_creator_pk, 10, 10000000000000000000)
-    print(a)
+    p = "0xb7e0DBa2a0EB6F9eC0F8a30Bb09afCb0A7baC58F"
+    a = eth_p.get_project(p)
+    print(a.get_auctions())
+    # auction_address = '0x7642521c320331561d65a20Da9B38BDc6ceaC517'
+    # a = eth_p.get_auction(auction_address).bid(p_creator, p_creator_pk, 10, 10000000000000000000)
+    # print(a)
 
 # git hub token : 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

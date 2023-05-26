@@ -68,3 +68,11 @@ class Project(models.Model):
         result = p.release(self.user.wallet.address, pk)
         print(result)
         self.token_info.save()
+
+    # def get_auction(self):
+    #     eth_p = get_eth_provider()
+    #     p = eth_p.get_project(contract_address=self.contract_address)
+    #     pk = eth_p.calc_private_key(self.user.wallet.encrypted_private_key, self.user.username)
+    #     result = p.get_auctions(self.user.wallet.address, pk)
+    #     print(result)
+    #     return result

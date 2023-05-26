@@ -3,7 +3,7 @@ import datetime
 from django.shortcuts import render
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK, HTTP_404_NOT_FOUND
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK, HTTP_404_NOT_FOUND, HTTP_401_UNAUTHORIZED
 from rest_framework.views import APIView
 
 from auction.serializers import *
@@ -33,9 +33,11 @@ class CreateAuctionView(APIView):
         pk = eth_p.calc_private_key(user.wallet.encrypted_private_key, user.username)
         result = eth_p.get_project(p.contract_address).create_auction(user.wallet.address, pk, a.sale_token_num,
                                                                       a.minimum_value_per_token, a.get_bidding_time())
-        print(result)
-        a.contract_address = result['logs'][0]['address']
 
+        auctions = eth_p.get_project(p.contract_address).get_auctions()
+        a.contract_address = auctions[-1]
+        print(a.contract_address)
+        a.creator.wallet.update_wallet()
         a.save()
         return Response(AuctionSerializer(a).data)
 
@@ -51,6 +53,7 @@ class GetAuctionList(APIView):
                 'minimum_bid_per_token': a.minimum_value_per_token,
                 'sale_token_num': a.sale_token_num,
                 'id': a.id,
+                'creator': a.creator.username,
                 'project': {
                     'symbol': a.project.token_info.symbol,
                     'image': a.project.image,
@@ -58,17 +61,66 @@ class GetAuctionList(APIView):
                     'id': a.project.id
                 },
                 'is_liked': len(LikedAuction.objects.filter(auction=a, user=request.user)) > 0,
-                'bidders': [BidSerializer(b).data for b in Bid.objects.filter(auction=a)]
+                'bidders': [BidSerializer(b).data for b in Bid.objects.filter(auction=a)],
+                'end_time': a.end_time,
+                'is_ended': a.state == AuctionState.Finished.value,
+                'is_canceled': a.state == AuctionState.Canceled.value
             }
             res.append(temp)
         return Response(data=res, status=HTTP_200_OK)
 
 
+class LikeAuction(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, id):
+        auction = Auction.objects.get(id=id)
+        if not auction:
+            return Response(status=HTTP_404_NOT_FOUND)
+        LikedAuction.objects.create(auction=auction, user=request.user)
+        return Response(HTTP_200_OK)
+
+
+class CalcAuction(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, id):
+        auction = Auction.objects.get(id=id)
+        if not auction:
+            return Response(status=HTTP_404_NOT_FOUND)
+        if auction.creator != request.user:
+            return Response(status=HTTP_401_UNAUTHORIZED)
+        eth_p = get_eth_provider()
+        pk = eth_p.calc_private_key(request.user.wallet.encrypted_private_key, request.user.username)
+        result = eth_p.get_project(auction.project.contract_address).calc_auction(request.user.wallet.address, pk,
+                                                                                  auction.contract_address)
+        print(result)
+        auction.calc_result()
+        return Response(HTTP_200_OK)
+
+
+class CancelAuction(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, id):
+        auction = Auction.objects.get(id=id)
+        if not auction:
+            return Response(status=HTTP_404_NOT_FOUND)
+        if auction.creator != request.user:
+            return Response(status=HTTP_401_UNAUTHORIZED)
+        eth_p = get_eth_provider()
+        pk = eth_p.calc_private_key(request.user.wallet.encrypted_private_key, request.user.username)
+        result = eth_p.get_project(auction.project.contract_address).cancel_auction(request.user.wallet.address, pk,
+                                                                                  auction.contract_address)
+        print(result)
+        auction.cancel()
+        return Response(HTTP_200_OK)
+
 class GetAuctionDetails(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, id):
-        a = Auction.objects.get(id)
+        a = Auction.objects.get(id=int(id))
         if not a:
             return Response(status=HTTP_404_NOT_FOUND)
 
@@ -76,7 +128,7 @@ class GetAuctionDetails(APIView):
             'minimum_bid_per_token': a.minimum_value_per_token,
             'sale_token_num': a.sale_token_num,
             'end_time': a.end_time,
-            'start_time': a.start_time_time,
+            'start_time': a.start_time,
             'id': a.id,
             'project': {
                 'symbol': a.project.token_info.symbol,
@@ -104,16 +156,36 @@ class BidOnAuction(APIView):
         b.save()
         return Response(BidSerializer(b).data, status=HTTP_200_OK)
 
-class GetAllBids(APIView):
+
+class GetMyBid(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, id):
-        Bids = Bid.objects.all(auction_id=request.id)
+        print(id)
+        bids = Bid.objects.filter(auction__id=id, bidder=request.user)
+        print(bids)
+        res = []
+        for bid in bids:
+            temp = {
+                "bidder": bid.bidder.username,
+                "auction_id": bid.auction.id,
+                "total_val": bid.total_val,
+                "token_num": bid.token_num,
+                "token_val": bid.total_val / bid.token_num
+            }
+            res.append(temp)
+        return Response(res)
+
+
+class GetAllBids(APIView):
+    def get(self, request, id):
+        print(id)
+        Bids = Bid.objects.filter(auction__id=id)
         res = []
         for bid in Bids:
             temp = {
-                "bidder_id": bid.bidder,
-                "auction_id": bid.auction,
+                "bidder_id": bid.bidder.username,
+                "auction_id": bid.auction.id,
                 "total_val": bid.total_val,
                 "token_num": bid.token_num
             }
