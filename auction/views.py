@@ -131,6 +131,7 @@ class GetAuctionDetails(APIView):
             'start_time': a.start_time,
             'id': a.id,
             'project': {
+                'name': a.project.name,
                 'symbol': a.project.token_info.symbol,
                 'website': a.project.basic_info.website,
                 'telegram_id':a.project.basic_info.telegram_id,
