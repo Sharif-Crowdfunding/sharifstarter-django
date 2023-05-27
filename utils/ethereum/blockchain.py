@@ -14,11 +14,11 @@ class ETHProvider:
         self.manager_pass = manager_pass
         try:
             self.ss_abi = open(
-                '/home/erfanfi79/PycharmProjects/sharifstarterbackend/utils/contract/SharifStarter.abi').read()
+                'T:/CrowdFunding/sharifstarter-django/utils/contract/SharifStarter.abi').read()
             self.project_abi = open(
-                '/home/erfanfi79/PycharmProjects/sharifstarterbackend/utils/contract/Project.abi').read()
+                'T:/CrowdFunding/sharifstarter-django/utils/contract/Project.abi').read()
             self.auction_abi = open(
-                '/home/erfanfi79/PycharmProjects/sharifstarterbackend/utils/contract/Auction.abi').read()
+                'T:/CrowdFunding/sharifstarter-django/utils/contract/Auction.abi').read()
         except:
             print("ETHProvider failed to load sharif starter abi.")
 
@@ -364,7 +364,7 @@ class AuctionProvider:
 def get_eth_provider():
     # ss_adrs = '0x3f54fBd35eAF4E584e75E8Eb642dA84a37205Db6'
     #test address -->
-    ss_adrs = '0x6c0cEe78d24258E76104b1A8c730F189f870801f'
+    ss_adrs = '0x5d80831b9e40f71E2753B91D6608111dB8E5192F'
     manager = '0xF86Afd6A2265a84FA2DcBDD4ad5a7f3B24DAe28A'
     manager_pk = '0x9e4baae161ee982622c8a855f5b0b3b964c0e01a3de9add6b06d6a3167a8582b'
     return ETHProvider(ss_adrs, manager, manager_pk)
