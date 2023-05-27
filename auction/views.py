@@ -191,3 +191,21 @@ class GetAllBids(APIView):
             }
             res.append(temp)
         return Response(res)
+
+class GetAllBidsOnAuction(APIView):
+    def get(self, request, id):
+        Auctions = Auction.objects.filter(project__id=id)
+        res = []
+        for x in Auctions:
+            auctionId = x.id
+            bids = Bid.objects.filter(auction__id = auctionId)
+            for y in bids:
+                temp ={
+                    "is_done": y.is_done,
+                    "total_val": y.total_val,
+                    "token_num": y.token_num,
+                    "bidder_id":y.bidder.id,
+                    "auction_id":y.auction.id
+                }
+                res.append(temp)
+        return Response(res)

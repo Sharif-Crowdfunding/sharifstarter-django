@@ -12,5 +12,6 @@ urlpatterns = [
     path('like/<id>/', LikeAuction.as_view()),
     path('cancel/<id>/', CancelAuction.as_view()),
     path('end/<id>/', CalcAuction.as_view()),
+    path('projects/<id>/bids', GetAllBidsOnAuction.as_view())
 
 ]

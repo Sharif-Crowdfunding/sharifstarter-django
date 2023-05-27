@@ -41,6 +41,10 @@ class GetTransactionView(APIView):
     def get(self, request):
         res = {
             "date":str(datetime.datetime.now()),
-            "value":""
+            "reciever_address":"0xb7e0DBa2a0EB6F9eC0F8a30Bb09afCb0A7baC58F",
+            "token_name":"PMP",
+            "price":"200000",
+            "project":"طراحی پمپ آب هوشمند",
+            "status":"در حال انجام"
         }
         return Response(res)
