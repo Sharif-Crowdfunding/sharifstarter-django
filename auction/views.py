@@ -20,7 +20,7 @@ class CreateAuctionView(APIView):
         data = request.data
         validated = False
         start_time = math.floor(datetime.datetime.timestamp(datetime.datetime.utcnow()))
-        end_time = start_time + data['duration']*1000
+        end_time = start_time + data['duration']
         if data['minimum_value_per_token'] > 10000 and data['sale_token_num'] > 0:
             if start_time < end_time:
                 validated = True
@@ -34,10 +34,9 @@ class CreateAuctionView(APIView):
         pk = eth_p.calc_private_key(user.wallet.encrypted_private_key, user.username)
         result = eth_p.get_project(p.contract_address).create_auction(user.wallet.address, pk, a.sale_token_num,
                                                                       a.minimum_value_per_token, a.get_bidding_time())
-
         auctions = eth_p.get_project(p.contract_address).get_auctions()
         a.contract_address = auctions[-1]
-        print(a.contract_address)
+
         a.creator.wallet.update_wallet()
         a.save()
         return Response(AuctionSerializer(a).data)
