@@ -9,6 +9,7 @@ from django.utils.timezone import now
 from project.models import Project
 from user.models import User
 from utils.ethereum.blockchain import get_eth_provider
+from wallet.models import TokenAsset, CryptoWallet
 
 
 class AuctionState(Enum):
@@ -49,6 +50,13 @@ class Auction(models.Model):
         print(bids)
         eth_p = get_eth_provider()
         winners = eth_p.get_auction(self.contract_address).get_winners()
+        for w in winners:
+            if len(w)>0:
+                t= TokenAsset.objects.get(wallet__address=w[0])
+                if t is None:
+                    wallet =CryptoWallet.objects.get(address= w[0])
+                    newT = TokenAsset(wallet=wallet,contract_address=self.project.contract_address,symbol=self.project.token_info.symbol,balance=w[2])
+                    newT.save()
         print("winners ----------->",winners)
 
     def cancel(self):
