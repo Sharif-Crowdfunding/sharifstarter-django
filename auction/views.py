@@ -183,11 +183,5 @@ class GetAllBids(APIView):
         Bids = Bid.objects.filter(auction__id=id)
         res = []
         for bid in Bids:
-            temp = {
-                "bidder_id": bid.bidder.username,
-                "auction_id": bid.auction.id,
-                "total_val": bid.total_val,
-                "token_num": bid.token_num
-            }
-            res.append(temp)
+            res.append(BidSerializer(bid).data)
         return Response(res)
