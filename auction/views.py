@@ -1,4 +1,5 @@
 import datetime
+import math
 
 from django.shortcuts import render
 from rest_framework.permissions import IsAuthenticated
@@ -18,8 +19,8 @@ class CreateAuctionView(APIView):
         user = request.user
         data = request.data
         validated = False
-        end_time = data['end_time']
-        start_time = data['start_time']
+        start_time = math.floor(datetime.datetime.timestamp(datetime.datetime.utcnow()))
+        end_time = start_time + data['duration']
         if data['minimum_value_per_token'] > 10000 and data['sale_token_num'] > 0:
             if start_time < end_time:
                 validated = True
@@ -33,10 +34,9 @@ class CreateAuctionView(APIView):
         pk = eth_p.calc_private_key(user.wallet.encrypted_private_key, user.username)
         result = eth_p.get_project(p.contract_address).create_auction(user.wallet.address, pk, a.sale_token_num,
                                                                       a.minimum_value_per_token, a.get_bidding_time())
-
         auctions = eth_p.get_project(p.contract_address).get_auctions()
         a.contract_address = auctions[-1]
-        print(a.contract_address)
+
         a.creator.wallet.update_wallet()
         a.save()
         return Response(AuctionSerializer(a).data)
@@ -92,6 +92,8 @@ class CalcAuction(APIView):
             return Response(status=HTTP_401_UNAUTHORIZED)
         eth_p = get_eth_provider()
         pk = eth_p.calc_private_key(request.user.wallet.encrypted_private_key, request.user.username)
+
+
         result = eth_p.get_project(auction.project.contract_address).calc_auction(request.user.wallet.address, pk,
                                                                                   auction.contract_address)
         print(result)
@@ -132,6 +134,10 @@ class GetAuctionDetails(APIView):
             'id': a.id,
             'project': {
                 'symbol': a.project.token_info.symbol,
+                'website': a.project.basic_info.website,
+                'telegram_id':a.project.basic_info.telegram_id,
+                'details': a.project.basic_info.details,
+                'github_id': a.project.basic_info.github_id,
                 'image': a.project.image,
                 'creator': a.project.user.username,
                 'id': a.project.id
@@ -151,7 +157,11 @@ class BidOnAuction(APIView):
         b = Bid(bidder=user, auction=auction, token_num=data['token_num'], total_val=data['total_val'])
         eth_p = get_eth_provider()
         pk = eth_p.calc_private_key(user.wallet.encrypted_private_key, user.username)
+        print(eth_p.get_auction(auction.contract_address).update_state(user.wallet.address, pk))
+        print(eth_p.get_auction(auction.contract_address).get_timestamp())
+        print(eth_p.get_auction(auction.contract_address).get_state())
         result = eth_p.get_auction(auction.contract_address).bid(user.wallet.address, pk, b.token_num, b.total_val)
+
         print(result)
         b.save()
         return Response(BidSerializer(b).data, status=HTTP_200_OK)
@@ -183,11 +193,5 @@ class GetAllBids(APIView):
         Bids = Bid.objects.filter(auction__id=id)
         res = []
         for bid in Bids:
-            temp = {
-                "bidder_id": bid.bidder.username,
-                "auction_id": bid.auction.id,
-                "total_val": bid.total_val,
-                "token_num": bid.token_num
-            }
-            res.append(temp)
+            res.append(BidSerializer(bid).data)
         return Response(res)

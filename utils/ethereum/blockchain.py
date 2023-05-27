@@ -14,11 +14,11 @@ class ETHProvider:
         self.manager_pass = manager_pass
         try:
             self.ss_abi = open(
-                'SharifStarter.abi').read()
+                '/home/erfanfi79/PycharmProjects/sharifstarterbackend/utils/contract/SharifStarter.abi').read()
             self.project_abi = open(
-                'Project.abi').read()
+                '/home/erfanfi79/PycharmProjects/sharifstarterbackend/utils/contract/Project.abi').read()
             self.auction_abi = open(
-                'Auction.abi').read()
+                '/home/erfanfi79/PycharmProjects/sharifstarterbackend/utils/contract/Auction.abi').read()
         except:
             print("ETHProvider failed to load sharif starter abi.")
 
@@ -320,6 +320,14 @@ class AuctionProvider:
     def get_winners(self):
         winners = self.contract_instance.functions.getWinners().call()
         return winners
+    def get_timestamp(self):
+        time = self.contract_instance.functions.getTimestamp().call()
+        return time
+    def get_state(self):
+        s = self.contract_instance.functions.getState().call()
+        e = self.contract_instance.functions.endTime().call()
+        st = self.contract_instance.functions.startTime().call()
+        return s,e,e-st
     def update_state(self, public_key, pk):
         nonce = self.web3.eth.getTransactionCount(public_key)
         gas_estimate = self.contract_instance.functions.updateState().estimateGas({'from': public_key})
@@ -354,7 +362,9 @@ class AuctionProvider:
 
 
 def get_eth_provider():
-    ss_adrs = '0x3f54fBd35eAF4E584e75E8Eb642dA84a37205Db6'
+    # ss_adrs = '0x3f54fBd35eAF4E584e75E8Eb642dA84a37205Db6'
+    #test address -->
+    ss_adrs = '0x6c0cEe78d24258E76104b1A8c730F189f870801f'
     manager = '0xF86Afd6A2265a84FA2DcBDD4ad5a7f3B24DAe28A'
     manager_pk = '0x9e4baae161ee982622c8a855f5b0b3b964c0e01a3de9add6b06d6a3167a8582b'
     return ETHProvider(ss_adrs, manager, manager_pk)
@@ -405,4 +415,3 @@ if __name__ == '__main__':
     # a = eth_p.get_auction(auction_address).bid(p_creator, p_creator_pk, 10, 10000000000000000000)
     # print(a)
 
-# git hub token : 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
