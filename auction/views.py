@@ -1,4 +1,5 @@
 import datetime
+import math
 
 from django.shortcuts import render
 from rest_framework.permissions import IsAuthenticated
@@ -18,8 +19,8 @@ class CreateAuctionView(APIView):
         user = request.user
         data = request.data
         validated = False
-        end_time = data['end_time']
-        start_time = data['start_time']
+        start_time = math.floor(datetime.datetime.timestamp(datetime.datetime.utcnow()))
+        end_time = start_time + data['duration']*1000
         if data['minimum_value_per_token'] > 10000 and data['sale_token_num'] > 0:
             if start_time < end_time:
                 validated = True
