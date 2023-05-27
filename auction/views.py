@@ -132,6 +132,10 @@ class GetAuctionDetails(APIView):
             'id': a.id,
             'project': {
                 'symbol': a.project.token_info.symbol,
+                'website': a.project.basic_info.website,
+                'telegram_id':a.project.basic_info.telegram_id,
+                'details': a.project.basic_info.details,
+                'github_id': a.project.basic_info.github_id,
                 'image': a.project.image,
                 'creator': a.project.user.username,
                 'id': a.project.id
