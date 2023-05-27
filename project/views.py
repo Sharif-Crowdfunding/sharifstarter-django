@@ -8,6 +8,9 @@ from utils.web3provider import get_provider
 from wallet.models import TokenAsset
 from wallet.tokens import mint_token
 
+from django.core.files.storage import FileSystemStorage
+
+
 
 # Create your views here.
 class CreateProjectView(APIView):
@@ -191,3 +194,12 @@ def set_shareholders(project, shareholders):
 
             # update token asset
             transfer_asset(asset.wallet, to_user.wallet, requested_share, asset.symbol)
+
+def upload_file(request):
+        request_file = request.FILES['document'] if 'document' in request.FILES else None
+        if request_file:
+            fs = FileSystemStorage()
+            file = fs.save(request_file.name, request_file)
+            fileurl = fs.url(file)
+
+

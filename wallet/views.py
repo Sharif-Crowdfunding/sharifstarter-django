@@ -21,7 +21,7 @@ class WalletView(APIView):
         project_count = len(Project.objects.filter(user=request.user))
         res = {
             'address': wallet.address,
-            'balance': wallet.eth_balance,
+            'balance': wallet.get_balance(),
             'auction_number':auction_count,
             'project_number':project_count,
             'tokens': [{'symbol': t.symbol,'contract_address':t.contract_address, 'balance': t.balance} for t in tokens]

@@ -92,6 +92,8 @@ class CalcAuction(APIView):
             return Response(status=HTTP_401_UNAUTHORIZED)
         eth_p = get_eth_provider()
         pk = eth_p.calc_private_key(request.user.wallet.encrypted_private_key, request.user.username)
+
+
         result = eth_p.get_project(auction.project.contract_address).calc_auction(request.user.wallet.address, pk,
                                                                                   auction.contract_address)
         print(result)
@@ -151,7 +153,11 @@ class BidOnAuction(APIView):
         b = Bid(bidder=user, auction=auction, token_num=data['token_num'], total_val=data['total_val'])
         eth_p = get_eth_provider()
         pk = eth_p.calc_private_key(user.wallet.encrypted_private_key, user.username)
+        print(eth_p.get_auction(auction.contract_address).update_state(user.wallet.address, pk))
+        print(eth_p.get_auction(auction.contract_address).get_timestamp())
+        print(eth_p.get_auction(auction.contract_address).get_state())
         result = eth_p.get_auction(auction.contract_address).bid(user.wallet.address, pk, b.token_num, b.total_val)
+
         print(result)
         b.save()
         return Response(BidSerializer(b).data, status=HTTP_200_OK)
