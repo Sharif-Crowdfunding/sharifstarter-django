@@ -5,7 +5,7 @@ from sharifstarterbackend.settings import BASE_DIR
 
 from web3 import Web3
 
-ganache_url = 'http://193.151.153.56:8545'
+ganache_url = 'http://localhost:8545'
 
 
 class ETHProvider:
@@ -363,9 +363,9 @@ class AuctionProvider:
 def get_eth_provider():
     # ss_adrs = '0x3f54fBd35eAF4E584e75E8Eb642dA84a37205Db6'
     #test address -->
-    ss_adrs = '0x5d80831b9e40f71E2753B91D6608111dB8E5192F'
-    manager = '0xF86Afd6A2265a84FA2DcBDD4ad5a7f3B24DAe28A'
-    manager_pk = '0x9e4baae161ee982622c8a855f5b0b3b964c0e01a3de9add6b06d6a3167a8582b'
+    ss_adrs = '0xCe961981fECAeC0c12CD9113834F928aB7dA20Ca'
+    manager = '0x889a460bb540121D51F6d612dc7B68414C8A2458'
+    manager_pk = '0x458ebe583298cdc04d0ccbe111448c2654dbd52530f1e6d9a3f5bae544760b89'
     return ETHProvider(ss_adrs, manager, manager_pk)
 
 

@@ -1,6 +1,6 @@
 from web3 import Web3
 
-ganache_url = 'http://193.151.153.56:8545'
+ganache_url = 'http://localhost:8545'
 
 w3 = Web3(Web3.HTTPProvider(ganache_url))
 # replace with the bytecode and ABI of your contract
