@@ -1,5 +1,7 @@
 import json
 from datetime import datetime
+import os 
+from sharifstarterbackend.settings import BASE_DIR
 
 from web3 import Web3
 
@@ -13,12 +15,9 @@ class ETHProvider:
         self.manager = manager
         self.manager_pass = manager_pass
         try:
-            self.ss_abi = open(
-                'T:/CrowdFunding/sharifstarter-django/utils/contract/SharifStarter.abi').read()
-            self.project_abi = open(
-                'T:/CrowdFunding/sharifstarter-django/utils/contract/Project.abi').read()
-            self.auction_abi = open(
-                'T:/CrowdFunding/sharifstarter-django/utils/contract/Auction.abi').read()
+            self.ss_abi = open(os.path.join(BASE_DIR, '/sharifstarterbackend/utils/contract/SharifStarter.abi')).read()
+            self.project_abi = open(os.path.join(BASE_DIR, '/sharifstarterbackend/utils/contract/SharifStarter.abi')).read()
+            self.auction_abi = open(os.path.join(BASE_DIR, '/sharifstarterbackend/utils/contract/SharifStarter.abi')).read()
         except:
             print("ETHProvider failed to load sharif starter abi.")
 
