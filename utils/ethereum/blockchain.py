@@ -15,9 +15,9 @@ class ETHProvider:
         self.manager = manager
         self.manager_pass = manager_pass
         try:
-            self.ss_abi = open(os.path.join(BASE_DIR, '/utils/contract/SharifStarter.abi')).read()
-            self.project_abi = open(os.path.join(BASE_DIR, '/utils/contract/SharifStarter.abi')).read()
-            self.auction_abi = open(os.path.join(BASE_DIR, '/utils/contract/SharifStarter.abi')).read()
+            self.ss_abi = open(os.path.join(BASE_DIR, '/sharifstarterbackend/utils/contract/SharifStarter.abi')).read()
+            self.project_abi = open(os.path.join(BASE_DIR, '/sharifstarterbackend/utils/contract/SharifStarter.abi')).read()
+            self.auction_abi = open(os.path.join(BASE_DIR, '/sharifstarterbackend/utils/contract/SharifStarter.abi')).read()
         except:
             print("ETHProvider failed to load sharif starter abi.")
 
