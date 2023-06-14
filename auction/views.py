@@ -1,7 +1,8 @@
 import datetime
 import math
+from time import sleep
 
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK, HTTP_404_NOT_FOUND, HTTP_401_UNAUTHORIZED
@@ -93,10 +94,9 @@ class CalcAuction(APIView):
         eth_p = get_eth_provider()
         pk = eth_p.calc_private_key(request.user.wallet.encrypted_private_key, request.user.username)
 
-
-        result = eth_p.get_project(auction.project.contract_address).calc_auction(request.user.wallet.address, pk,
-                                                                                  auction.contract_address)
-        print(result)
+        result_comp = eth_p.get_auction(auction.contract_address).complete_auction(request.user.wallet.address, pk)
+        result_calc = eth_p.get_project(auction.project.contract_address).calc_auction(request.user.wallet.address, pk,
+                                                                                       auction.contract_address)
         auction.calc_result()
         return Response(HTTP_200_OK)
 
@@ -112,11 +112,12 @@ class CancelAuction(APIView):
             return Response(status=HTTP_401_UNAUTHORIZED)
         eth_p = get_eth_provider()
         pk = eth_p.calc_private_key(request.user.wallet.encrypted_private_key, request.user.username)
+        a_cancel_result = eth_p.get_auction(auction.contract_address).cancel(request.user.wallet.address, pk)
         result = eth_p.get_project(auction.project.contract_address).cancel_auction(request.user.wallet.address, pk,
-                                                                                  auction.contract_address)
-        print(result)
+                                                                                    auction.contract_address)
         auction.cancel()
         return Response(HTTP_200_OK)
+
 
 class GetAuctionDetails(APIView):
     permission_classes = [IsAuthenticated]
@@ -136,7 +137,7 @@ class GetAuctionDetails(APIView):
                 'name': a.project.name,
                 'symbol': a.project.token_info.symbol,
                 'website': a.project.basic_info.website,
-                'telegram_id':a.project.basic_info.telegram_id,
+                'telegram_id': a.project.basic_info.telegram_id,
                 'details': a.project.basic_info.details,
                 'github_id': a.project.basic_info.github_id,
                 'image': a.project.image,
@@ -159,22 +160,31 @@ class BidOnAuction(APIView):
         eth_p = get_eth_provider()
         pk = eth_p.calc_private_key(user.wallet.encrypted_private_key, user.username)
         print(eth_p.get_auction(auction.contract_address).update_state(user.wallet.address, pk))
-        print(eth_p.get_auction(auction.contract_address).get_timestamp())
-        print(eth_p.get_auction(auction.contract_address).get_state())
         result = eth_p.get_auction(auction.contract_address).bid(user.wallet.address, pk, b.token_num, b.total_val)
-
-        print(result)
         b.save()
         return Response(BidSerializer(b).data, status=HTTP_200_OK)
+
+
+class CancelBid(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request,id):
+        user = request.user
+        auction = Auction.objects.get(id=id)
+        bid = get_object_or_404(Bid, bidder=user, auction=auction)
+
+        eth_p = get_eth_provider()
+        pk = eth_p.calc_private_key(user.wallet.encrypted_private_key, user.username)
+        result = eth_p.get_auction(auction.contract_address).cancel_bid(user.wallet.address, pk)
+        bid.delete()
+        return Response(status=HTTP_200_OK)
 
 
 class GetMyBid(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, id):
-        print(id)
         bids = Bid.objects.filter(auction__id=id, bidder=request.user)
-        print(bids)
         res = []
         for bid in bids:
             temp = {

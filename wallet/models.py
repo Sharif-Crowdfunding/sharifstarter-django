@@ -25,8 +25,6 @@ class CryptoWallet(models.Model):
         eth_p = get_eth_provider()
         balance = eth_p.get_project(contract_address).get_balance(self.address)
         t = TokenAsset.objects.get(wallet=self,contract_address=contract_address)
-        if t is None and balance>0:
-            t= TokenAsset(wallet=self,contract_address=contract_address,balance=balance)
         t.balance=balance
         t.save()
 

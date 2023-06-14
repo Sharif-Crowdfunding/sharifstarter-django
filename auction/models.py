@@ -43,31 +43,29 @@ class Auction(models.Model):
         return self.end_time - self.start_time
 
     def calc_result(self):
-        self.state=AuctionState.Finished.value
-        self.save()
-
-        bids = Bid.objects.filter(auction=self)
-        print(bids)
         eth_p = get_eth_provider()
         winners = eth_p.get_auction(self.contract_address).get_winners()
         for w in winners:
-            if len(w)>0:
-                t= TokenAsset.objects.get(wallet__address=w[0])
-                if t is None:
-                    wallet =CryptoWallet.objects.get(address= w[0])
-                    newT = TokenAsset(wallet=wallet,contract_address=self.project.contract_address,symbol=self.project.token_info.symbol,balance=w[2])
+            print(w)
+            if len(w) > 0:
+                t = TokenAsset.objects.filter(wallet__address=w[0], contract_address=self.project.contract_address)
+                if len(t) == 0:
+                    print("in")
+                    wallet = CryptoWallet.objects.get(address=w[0])
+                    newT = TokenAsset(wallet=wallet, contract_address=self.project.contract_address,
+                                      symbol=self.project.token_info.symbol, balance=w[2])
                     newT.save()
-        print("winners ----------->",winners)
+        self.state = AuctionState.Finished.value
+        self.save()
 
     def cancel(self):
-        self.state=AuctionState.Canceled.value
+        self.state = AuctionState.Canceled.value
         self.save()
         print(self.state)
         bids = Bid.objects.filter(auction=self)
         for b in bids:
             b.bidder.wallet.update_wallet()
         self.creator.wallet.update_wallet()
-        print(bids)
 
 
 class LikedAuction(models.Model):
