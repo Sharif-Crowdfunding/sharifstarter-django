@@ -15,11 +15,17 @@ class ETHProvider:
         self.manager = manager
         self.manager_pass = manager_pass
         try:
-            self.ss_abi = open(os.path.join(BASE_DIR, '/sharifstarterbackend/utils/contract/SharifStarter.abi')).read()
-            self.project_abi = open(os.path.join(BASE_DIR, '/sharifstarterbackend/utils/contract/Project.abi')).read()
-            self.auction_abi = open(os.path.join(BASE_DIR, '/sharifstarterbackend/utils/contract/Auction.abi')).read()
-        except:
-            print("ETHProvider failed to load sharif starter abi.")
+            self.ss_abi = open(os.path.join(BASE_DIR, 'abi/SharifStarter.abi')).read()
+        except Exception as e:
+            print("ETHProvider failed to load SharifStarter.abi. Exception: ", e)
+        try:
+            self.project_abi = open(os.path.join(BASE_DIR, 'abi/Project.abi')).read()
+        except Exception as e:
+            print("ETHProvider failed to load Project.abi. Exception: ", e)
+        try:
+            self.auction_abi = open(os.path.join(BASE_DIR, 'abi/Auction.abi')).read()
+        except Exception as e:
+            print("ETHProvider failed to load Auction.abi. Exception: ", e)
 
     def get_sharif_starter(self):
         return SharifStarterProvider(self.web3, self.ss_contract_address, self.ss_abi)
