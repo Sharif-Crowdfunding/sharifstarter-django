@@ -147,7 +147,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
 ]
-CSRF_TRUSTED_ORIGINS = ['https://*.127.0.0.1','http://localhost:3000']
+CSRF_TRUSTED_ORIGINS = ['https://*.127.0.0.1','http://localhost:3000', 'http://213.233.177.146']
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media') # media directory in the root directory
 MEDIA_URL = '/media/'
