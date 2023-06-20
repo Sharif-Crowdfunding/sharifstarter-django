@@ -11,7 +11,6 @@ from wallet.tokens import mint_token
 from django.core.files.storage import FileSystemStorage
 
 
-
 # Create your views here.
 class CreateProjectView(APIView):
     permission_classes = [IsAuthenticated]
@@ -46,8 +45,7 @@ class CreateProjectView(APIView):
         mint_token(p)
         p.save()
 
-        #TODO
-        # set_shareholders(p, shareholders)
+        set_shareholders(p, shareholders)
 
         return Response(ProjectSerializer(p).data)
 
@@ -149,7 +147,7 @@ class TransferToken(APIView):
             return Response(status=HTTP_400_BAD_REQUEST)
         project = Project.objects.get(token_info__symbol=data['symbol'])
         receiver = User.objects.get(username=data['username'])
-        asset = TokenAsset.objects.get(wallet=sender.wallet, symbol=project.symbol)
+        asset = TokenAsset.objects.get(wallet=sender.wallet, symbol=project.token_info.symbol)
 
         if not receiver and not asset:
             return Response(status=HTTP_412_PRECONDITION_FAILED)
@@ -166,40 +164,28 @@ class TransferToken(APIView):
         return Response(status=HTTP_200_OK)
 
 
-def transfer_asset(s_wallet, r_wallet, amount, symbol):
-    s_asset = TokenAsset.objects.get(wallet=s_wallet, symbol=symbol)
-    s_asset.balance = s_asset.balance - amount
-    s_asset.save()
-
-    r_asset = TokenAsset.objects.get(wallet=r_wallet, symbol=symbol)
-    if not r_asset:
-        r_asset = TokenAsset(wallet=r_wallet, contract_address=s_asset.contract_address, balance=amount,
-                             symbol=s_asset.symbol)
-    else:
-        r_asset.balance = r_asset.balance + amount
+def transfer_asset(s_wallet, r_wallet, amount, symbol, contract_address):
+    r_asset = TokenAsset(wallet=r_wallet, contract_address=contract_address, balance=amount,
+                         symbol=symbol)
     r_asset.save()
 
 
 def set_shareholders(project, shareholders):
     eth_p = get_eth_provider()
     p = eth_p.get_project(project.contract_address)
-    asset = TokenAsset.objects.get(wallet=p.user.wallet)
+    pk = eth_p.calc_private_key(project.user.wallet.encrypted_private_key, project.user.username)
+    asset = TokenAsset.objects.get(wallet=project.user.wallet, contract_address=project.contract_address)
     for s in shareholders:
-        requested_share = s.token_num
-        to_user = User.objects.get(username=s.username)
+        requested_share = s['token_num']
+        to_user = User.objects.get(username=s['username'])
         if asset.balance > requested_share and to_user:
-            pk = eth_p.calc_private_key(project.user.wallet.encrypted_private_key, project.user.username)
             result = p.transfer(asset.wallet.address, pk, to_user.wallet.address, requested_share)
-            print(result)
+            transfer_asset(asset.wallet, to_user.wallet, requested_share, asset.symbol, project.contract_address)
 
-            # update token asset
-            transfer_asset(asset.wallet, to_user.wallet, requested_share, asset.symbol)
 
 def upload_file(request):
-        request_file = request.FILES['document'] if 'document' in request.FILES else None
-        if request_file:
-            fs = FileSystemStorage()
-            file = fs.save(request_file.name, request_file)
-            fileurl = fs.url(file)
-
-
+    request_file = request.FILES['document'] if 'document' in request.FILES else None
+    if request_file:
+        fs = FileSystemStorage()
+        file = fs.save(request_file.name, request_file)
+        fileurl = fs.url(file)

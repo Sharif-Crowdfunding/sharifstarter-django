@@ -20,7 +20,6 @@ class ETHProvider:
             self.auction_abi = open(os.path.join(BASE_DIR, '/sharifstarterbackend/utils/contract/Auction.abi')).read()
         except:
             print("ETHProvider failed to load sharif starter abi.")
-
     def get_sharif_starter(self):
         return SharifStarterProvider(self.web3, self.ss_contract_address, self.ss_abi)
 
@@ -60,9 +59,11 @@ class ETHProvider:
         sent_tx = self.web3.eth.sendRawTransaction(signed_txn.rawTransaction)
         result = self.web3.eth.wait_for_transaction_receipt(sent_tx)
         return result
+
     def get_shs_token(self, to, amount):
         nonce = self.web3.eth.getTransactionCount(self.manager)
-        gas_estimate = self.get_sharif_starter().contract_instance.functions.transfer(to, amount).estimateGas({'from': self.manager})
+        gas_estimate = self.get_sharif_starter().contract_instance.functions.transfer(to, amount).estimateGas(
+            {'from': self.manager})
         tx_hash = self.get_sharif_starter().contract_instance.functions.transfer(to, amount).buildTransaction({
             'gas': gas_estimate,
             'gasPrice': self.web3.eth.gasPrice,
@@ -315,18 +316,49 @@ class AuctionProvider:
         sent_tx = self.web3.eth.sendRawTransaction(signed_txn.rawTransaction)
         result = self.web3.eth.wait_for_transaction_receipt(sent_tx)
         return result
+    def cancel_bid(self, bidder, pk):
+        nonce = self.web3.eth.getTransactionCount(bidder)
+        gas_estimate = self.contract_instance.functions.cancelBid().estimateGas({'from': auction_creator})
+        tx_hash = self.contract_instance.functions.cancelBid().buildTransaction({
+            'gas': gas_estimate,
+            'gasPrice': self.web3.eth.gasPrice,
+            'from': bidder,
+            'nonce': nonce,
+        })
+
+        signed_txn = self.web3.eth.account.signTransaction(tx_hash, private_key=pk)
+        sent_tx = self.web3.eth.sendRawTransaction(signed_txn.rawTransaction)
+        result = self.web3.eth.wait_for_transaction_receipt(sent_tx)
+        return result
+    def complete_auction(self, auction_creator, pk):
+        nonce = self.web3.eth.getTransactionCount(auction_creator)
+        gas_estimate = self.contract_instance.functions.completeAuction().estimateGas({'from': auction_creator})
+        tx_hash = self.contract_instance.functions.completeAuction().buildTransaction({
+            'gas': gas_estimate,
+            'gasPrice': self.web3.eth.gasPrice,
+            'from': auction_creator,
+            'nonce': nonce,
+        })
+
+        signed_txn = self.web3.eth.account.signTransaction(tx_hash, private_key=pk)
+        sent_tx = self.web3.eth.sendRawTransaction(signed_txn.rawTransaction)
+        result = self.web3.eth.wait_for_transaction_receipt(sent_tx)
+        return result
 
     def get_winners(self):
         winners = self.contract_instance.functions.getWinners().call()
         return winners
+
     def get_timestamp(self):
         time = self.contract_instance.functions.getTimestamp().call()
         return time
+
     def get_state(self):
         s = self.contract_instance.functions.getState().call()
         e = self.contract_instance.functions.endTime().call()
         st = self.contract_instance.functions.startTime().call()
-        return s,e,e-st
+        return s, e, e - st
+
     def update_state(self, public_key, pk):
         nonce = self.web3.eth.getTransactionCount(public_key)
         gas_estimate = self.contract_instance.functions.updateState().estimateGas({'from': public_key})
@@ -361,56 +393,7 @@ class AuctionProvider:
 
 
 def get_eth_provider():
-    # ss_adrs = '0x3f54fBd35eAF4E584e75E8Eb642dA84a37205Db6'
-    #test address -->
     ss_adrs = '0xCe961981fECAeC0c12CD9113834F928aB7dA20Ca'
     manager = '0x889a460bb540121D51F6d612dc7B68414C8A2458'
     manager_pk = '0x458ebe583298cdc04d0ccbe111448c2654dbd52530f1e6d9a3f5bae544760b89'
     return ETHProvider(ss_adrs, manager, manager_pk)
-
-
-if __name__ == '__main__':
-    creator = '0x9d112fE3fA0740f789e6a49bf9Eb0e3563908438'
-    eth_p = get_eth_provider()
-    # print(eth_p.get_sharif_starter().get_total_supply())
-    # print(eth_p.get_sharif_starter().balance_of(creator))
-
-    # print("transfer func test:")
-    # print(eth_p.get_sharif_starter().transfer('0x1917c9DAb2A42077701c72B9A2C855f4Fe10E041',
-    #                                           '0x403c224223505bb9ee1e7817f905e78f1e7c15b2fd6c6af0b95bfc8e8493ca8a',
-    #                                           '0xBD4a090365b7968053d3bCed09Cb5415941b95b1', 10 ** 19))
-
-    p_creator = '0xd5861813d45aa520d5d560da02cd966582870234'
-    p_creator_pk = '0xad35d3084a4871f03a638e192fea6849098bbfbebf1f57b49fc31b5ef5b195c9'
-
-    # print("create project")
-    # result =(eth_p.get_sharif_starter().create_project(p_creator,p_creator_pk
-    #                                            ,eth_p.manager,
-    #                                                 'jolback','JOLB','description',10000))
-    #
-    # project_address = result['logs'][0]['address']
-    # print("project adrs: ",project_address)
-
-    # project_address = '0xD332a42E13580EaD8b88f96176CDB6c24379EbB0'
-    # p = eth_p.get_project(project_address)
-    # print(p.get_details())
-    # #
-    # print(p.fund(p_creator, p_creator_pk))
-    # print(p.approve_by_manager(manager,manager_pk))
-    # print(p.release(p_creator, p_creator_pk))
-    #
-    # Create Auction
-    # print("create auction")
-    # bidding_time = int(60*5)
-    # sale_token_num=100
-    # min_val_per_token=10**17
-    # result=p.create_auction(p_creator,p_creator_pk,sale_token_num,min_val_per_token,bidding_time)
-    # print(result)
-
-    p = "0xb7e0DBa2a0EB6F9eC0F8a30Bb09afCb0A7baC58F"
-    a = eth_p.get_project(p)
-    print(a.get_auctions())
-    # auction_address = '0x7642521c320331561d65a20Da9B38BDc6ceaC517'
-    # a = eth_p.get_auction(auction_address).bid(p_creator, p_creator_pk, 10, 10000000000000000000)
-    # print(a)
-
