@@ -14,7 +14,8 @@ from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
+# BASE_DIR = Path("C:/Users/User/source/repos/SharifCrowdFunding/sharifstarter-django")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -146,7 +147,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
 ]
-CSRF_TRUSTED_ORIGINS = ['https://*.127.0.0.1','http://localhost:3000']
+CSRF_TRUSTED_ORIGINS = ['https://*.127.0.0.1','http://localhost:3000', 'http://213.233.177.146']
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media') # media directory in the root directory
 MEDIA_URL = '/media/'

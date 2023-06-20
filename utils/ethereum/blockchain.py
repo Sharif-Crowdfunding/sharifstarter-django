@@ -15,11 +15,18 @@ class ETHProvider:
         self.manager = manager
         self.manager_pass = manager_pass
         try:
-            self.ss_abi = open(os.path.join(BASE_DIR, '/sharifstarterbackend/utils/contract/SharifStarter.abi')).read()
-            self.project_abi = open(os.path.join(BASE_DIR, '/sharifstarterbackend/utils/contract/Project.abi')).read()
-            self.auction_abi = open(os.path.join(BASE_DIR, '/sharifstarterbackend/utils/contract/Auction.abi')).read()
-        except:
-            print("ETHProvider failed to load sharif starter abi.")
+            self.ss_abi = open(os.path.join(BASE_DIR, 'abi/SharifStarter.abi')).read()
+        except Exception as e:
+            print("ETHProvider failed to load SharifStarter.abi. Exception: ", e)
+        try:
+            self.project_abi = open(os.path.join(BASE_DIR, 'abi/Project.abi')).read()
+        except Exception as e:
+            print("ETHProvider failed to load Project.abi. Exception: ", e)
+        try:
+            self.auction_abi = open(os.path.join(BASE_DIR, 'abi/Auction.abi')).read()
+        except Exception as e:
+            print("ETHProvider failed to load Auction.abi. Exception: ", e)
+
     def get_sharif_starter(self):
         return SharifStarterProvider(self.web3, self.ss_contract_address, self.ss_abi)
 
@@ -393,7 +400,9 @@ class AuctionProvider:
 
 
 def get_eth_provider():
-    ss_adrs = '0xCe961981fECAeC0c12CD9113834F928aB7dA20Ca'
-    manager = '0x889a460bb540121D51F6d612dc7B68414C8A2458'
-    manager_pk = '0x458ebe583298cdc04d0ccbe111448c2654dbd52530f1e6d9a3f5bae544760b89'
+    # ss_adrs = '0x3f54fBd35eAF4E584e75E8Eb642dA84a37205Db6'
+    #test address -->
+    ss_adrs = '0x6C671eD87E3fb636e168d0300265272ff9310425'
+    manager = '0x7A908C1765C11c0CFC69D4db0F2e2d355360b7B3'
+    manager_pk = '0x27b26842a8ba9a3946bf206a932cdb5680ba49f6b3856c7de2ef2a306ba31d9e'
     return ETHProvider(ss_adrs, manager, manager_pk)
